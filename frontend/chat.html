@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat</title>
+
+<style>
+body {
+    margin:0;
+    font-family: 'Segoe UI', sans-serif;
+    background:#ece5dd;
+}
+
+/* APP FULL SCREEN */
+.app {
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+}
+
+/* HEADER */
+.header {
+    background:#075e54;
+    color:white;
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.status {
+    font-size:12px;
+}
+
+/* CHAT */
+.messages {
+    flex:1;
+    overflow-y:auto;
+    padding:10px;
+}
+
+/* MESSAGE */
+.msg {
+    max-width:70%;
+    padding:8px 12px;
+    margin:5px;
+    border-radius:8px;
+    font-size:14px;
+}
+
+.me {
+    background:#dcf8c6;
+    margin-left:auto;
+}
+
+.other {
+    background:white;
+}
+
+/* TIME + TICK */
+.meta {
+    font-size:10px;
+    text-align:right;
+    color:gray;
+}
+
+.tick {
+    margin-left:5px;
+}
+
+/* INPUT */
+.input-box {
+    display:flex;
+    padding:8px;
+    background:#f0f0f0;
+}
+
+input {
+    flex:1;
+    padding:10px;
+    border-radius:20px;
+    border:none;
+}
+
+button {
+    margin-left:5px;
+    border:none;
+    border-radius:50%;
+    padding:10px;
+    background:#075e54;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            <b>{{ user }}</b>
+            <div id="status" class="status"></div>
+        </div>
+        <div onclick="logout()">🚪</div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="messages" class="messages"></div>
+
+    <!-- INPUT -->
+    <div class="input-box">
+        <input id="msg" placeholder="Message">
+        <button onclick="send()">➤</button>
+        <button onclick="sendImage()">📷</button>
+        <button onclick="recordVoice()">🎤</button>
+    </div>
+
+</div>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+<script>
+let socket = io();
+let username = "{{ user }}";
+let msgId = 0;
+
+// JOIN
+socket.emit("join",{user:username});
+
+// SEND
+function send(){
+    let msg=document.getElementById("msg").value;
+    if(!msg) return;
+
+    msgId++;
+
+    socket.emit("send_message",{
+        id:msgId,
+        user:username,
+        message:msg,
+        time:new Date().toLocaleTimeString()
+    });
+
+    document.getElementById("msg").value="";
+}
+
+// RECEIVE
+socket.on("receive_message",(data)=>{
+    let div=document.createElement("div");
+    div.className=(data.user===username)?"msg me":"msg other";
+    div.id="msg_"+data.id;
+
+    div.innerHTML=`
+        ${data.message}
+        <div class="meta">
+            ${data.time}
+            ${data.user===username ? '<span class="tick">✔</span>' : ''}
+        </div>
+    `;
+
+    // SEEN SEND
+    if(data.user !== username){
+        socket.emit("seen",{id:data.id});
+    }
+
+    document.getElementById("messages").appendChild(div);
+    document.getElementById("messages").scrollTop=9999;
+});
+
+// ✔✔ UPDATE
+socket.on("seen_update",(data)=>{
+    let msg=document.getElementById("msg_"+data.id);
+    if(msg){
+        let tick=msg.querySelector(".tick");
+        if(tick) tick.innerHTML="✔✔";
+    }
+});
+
+// STATUS
+socket.on("update_status",(data)=>{
+    let other=(username==="admin")?"user":"admin";
+    document.getElementById("status").innerText =
+        other+" is "+(data[other]||"offline");
+});
+
+// IMAGE
+function sendImage(){
+    let input=document.createElement("input");
+    input.type="file";
+
+    input.onchange=()=>{
+        let file=input.files[0];
+        let reader=new FileReader();
+
+        reader.onload=()=>{
+            socket.emit("send_message",{
+                user:username,
+                message:`<img src="${reader.result}" width="150">`,
+                time:new Date().toLocaleTimeString()
+            });
+        };
+
+        reader.readAsDataURL(file);
+    };
+
+    input.click();
+}
+
+// VOICE
+async function recordVoice(){
+    let stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    let recorder=new MediaRecorder(stream);
+    let chunks=[];
+
+    recorder.start();
+
+    recorder.ondataavailable=e=>chunks.push(e.data);
+
+    recorder.onstop=()=>{
+        let blob=new Blob(chunks);
+        let reader=new FileReader();
+
+        reader.onload=()=>{
+            socket.emit("send_message",{
+                user:username,
+                message:`<audio controls src="${reader.result}"></audio>`,
+                time:new Date().toLocaleTimeString()
+            });
+        };
+
+        reader.readAsDataURL(blob);
+    };
+
+    setTimeout(()=>recorder.stop(),3000);
+}
+
+// LOGOUT
+function logout(){
+    window.location.href="/logout";
+}
+</script>
+
+</body>
+</html>

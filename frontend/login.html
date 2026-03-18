@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login - Nandy Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1d2671, #c33764);
+}
+
+/* Glass Card */
+.container {
+    width: 350px;
+    padding: 30px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    text-align: center;
+    color: white;
+}
+
+/* Title */
+h2 {
+    margin-bottom: 20px;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #00c6ff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #0072ff;
+}
+
+/* Divider */
+.divider {
+    margin: 15px 0;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Register section */
+.register {
+    margin-top: 10px;
+}
+
+.register button {
+    background: #ff7eb3;
+}
+
+.register button:hover {
+    background: #ff4e8a;
+}
+
+/* Responsive */
+@media(max-width: 400px) {
+    .container {
+        width: 90%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>💬 Nandy Chat</h2>
+
+    <!-- LOGIN -->
+  <form method="POST">
+    <input name="username" placeholder="Username (admin / user)" required>
+    <input name="password" type="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+</form>
+
+
+
+
+
+    <!-- REGISTER -->
+
+
+</div>
+
+</body>
+</html>
