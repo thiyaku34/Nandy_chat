@@ -143,4 +143,4 @@ def ice_candidate(data):
 
 # ---------------- RUN ----------------
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, host="0.0.0.0", port=10000)
