@@ -1,46 +1,39 @@
-from flask import Flask
-from flask_socketio import SocketIO
+import eventlet
+eventlet.monkey_patch()
+
+from flask import Flask, render_template, request, redirect, session
+from flask_socketio import SocketIO, emit
 from flask_bcrypt import Bcrypt
-
-# ✅ app create
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret123'
-
-# ✅ extensions init
-bcrypt = Bcrypt(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
-
-# ✅ route
-@app.route('/')
-def home():
-    return "App running 🚀"
+import datetime
 
 # ---------------- APP SETUP ----------------
 app = Flask(__name__, template_folder="../frontend")
-app.secret_key = "supersecretkey"
+app.config['SECRET_KEY'] = 'supersecretkey'
 
+# ---------------- EXTENSIONS ----------------
+bcrypt = Bcrypt(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # ---------------- USERS ----------------
 users = {
-    "admin": bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()),
-    "user": bcrypt.hashpw("user123".encode(), bcrypt.gensalt())
+    "admin": bcrypt.generate_password_hash("admin123").decode('utf-8'),
+    "user": bcrypt.generate_password_hash("user123").decode('utf-8')
 }
 
 # ---------------- STATUS ----------------
 online_users = {}
 
 # ---------------- MESSAGES STORE ----------------
-messages_db = {}   # {id: message_data}
+messages_db = {}
 
 # ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
-        password = request.form["password"].encode()
+        password = request.form["password"]
 
-        if username in users and bcrypt.checkpw(password, users[username]):
+        if username in users and bcrypt.check_password_hash(users[username], password):
             session["user"] = username
             return redirect("/chat")
         else:
@@ -85,7 +78,7 @@ def handle_disconnect():
     emit("update_status", online_users, broadcast=True)
 
 
-# SEND MESSAGE (TEXT / IMAGE / FILE / AUDIO)
+# SEND MESSAGE
 @socketio.on("send_message")
 def handle_message(data):
 
@@ -94,7 +87,7 @@ def handle_message(data):
     message_data = {
         "id": msg_id,
         "user": data["user"],
-        "message": data["message"],   # HTML (text/image/audio/file)
+        "message": data["message"],
         "time": data["time"],
         "seen": False,
         "reaction": ""
@@ -137,7 +130,7 @@ def react(data):
     }, broadcast=True)
 
 
-# ---------------- CALL SIGNALING (BASIC) ----------------
+# ---------------- CALL SIGNALING ----------------
 
 @socketio.on("call_user")
 def call_user(data):
@@ -153,6 +146,5 @@ def ice_candidate(data):
 
 
 # ---------------- RUN ----------------
-# ❗ IMPORTANT (Render ku)
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
