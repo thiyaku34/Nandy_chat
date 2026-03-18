@@ -1,19 +1,19 @@
 from flask import Flask
+from flask_socketio import SocketIO
 from flask_bcrypt import Bcrypt
 
-# ✅ FIRST app create pannunga
+# ✅ app create
 app = Flask(__name__)
-
-# ✅ THEN bcrypt initialize pannunga
-bcrypt = Bcrypt(app)
-
-# (optional) config
 app.config['SECRET_KEY'] = 'secret123'
 
-# sample route
+# ✅ extensions init
+bcrypt = Bcrypt(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# ✅ route
 @app.route('/')
 def home():
-    return "App running successfully 🚀"
+    return "App running 🚀"
 
 # ---------------- APP SETUP ----------------
 app = Flask(__name__, template_folder="../frontend")
@@ -153,5 +153,6 @@ def ice_candidate(data):
 
 
 # ---------------- RUN ----------------
+# ❗ IMPORTANT (Render ku)
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=10000)
+    socketio.run(app, host="0.0.0.0", port=5000)
