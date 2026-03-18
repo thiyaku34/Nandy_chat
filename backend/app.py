@@ -1,11 +1,19 @@
-from flask import Flask, render_template, request, redirect, session
-from flask_socketio import SocketIO, emit
-from flask_bcrypt import Bcrypt   
+from flask import Flask
+from flask_bcrypt import Bcrypt
 
-bcrypt = Bcrypt()
-bcrypt.init_app(app)
-import datetime
-import base64
+# ✅ FIRST app create pannunga
+app = Flask(__name__)
+
+# ✅ THEN bcrypt initialize pannunga
+bcrypt = Bcrypt(app)
+
+# (optional) config
+app.config['SECRET_KEY'] = 'secret123'
+
+# sample route
+@app.route('/')
+def home():
+    return "App running successfully 🚀"
 
 # ---------------- APP SETUP ----------------
 app = Flask(__name__, template_folder="../frontend")
