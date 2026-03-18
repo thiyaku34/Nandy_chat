@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, session
 from flask_socketio import SocketIO, emit
-import bcrypt
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
+bcrypt.init_app(app)
 import datetime
 import base64
 
